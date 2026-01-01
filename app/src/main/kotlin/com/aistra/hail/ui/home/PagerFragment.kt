@@ -187,13 +187,12 @@ class PagerFragment : MainFragment(), PagerAdapter.OnItemClickListener, PagerAda
         (it != getString(R.string.action_unfreeze_remove_home) || frozen)
     }.toMutableList()
 
-    // 2. Add the Play Store option to the end of the list
+    // 2. Add the Store options to the end of the list
     val playStoreLabel = "Open in Play Store"
-    optionsList.add(playStoreLabel)
+    val fDroidLabel = "Open in F-Droid" // <--- ADD THIS
     
-    // 2. Add the F-Doid option to the end of the list
-    val fdroidLabel = "Open in F-Droid"
-    optionsList.add(fdroidLabel)
+    optionsList.add(playStoreLabel)
+    optionsList.add(fDroidLabel)      // <--- ADD THIS
 
     MaterialAlertDialogBuilder(activity).setTitle(info.name).setItems(
         optionsList.toTypedArray()
