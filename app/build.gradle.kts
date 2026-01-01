@@ -35,7 +35,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             if (!commitSubject.startsWith("[release]")) versionNameSuffix = "-g$commitHash"
-            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.getByName("debug")
             // signingConfig = if (signingProps.exists()) {
             //    val props = `java.util`.Properties().apply { load(signingProps.reader()) }
             //    signingConfigs.create("release") {
