@@ -190,12 +190,26 @@ class PagerFragment : MainFragment(), PagerAdapter.OnItemClickListener, PagerAda
     // 2. Add the Play Store option to the end of the list
     val playStoreLabel = "Open in Play Store"
     optionsList.add(playStoreLabel)
+    
+    // 2. Add the F-Doid option to the end of the list
+    val fdroidLabel = "Open in F-Droid"
+    optionsList.add(fdroidLabel)
 
     MaterialAlertDialogBuilder(activity).setTitle(info.name).setItems(
         optionsList.toTypedArray()
     ) { _, which ->
-        // 3. Check if the clicked item is our new Play Store option
-        if (which == optionsList.lastIndex) {
+
+        // Check which custom option was clicked by looking at the text
+        val clickedItem = optionsList[which]
+    
+        // 3A. Check if the clicked item is our new Play Store option
+        if (clickedItem == fDroidLabel) {
+            // Droid-ify and F-Droid intercept this URL
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://f-droid.org/packages/$pkg")))
+            return@setItems
+        }
+        // 3B. Check if the clicked item is our new Play Store option
+        if (clickedItem == playStoreLabel) {
             try {
                 startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=$pkg")))
             } catch (e: android.content.ActivityNotFoundException) {
