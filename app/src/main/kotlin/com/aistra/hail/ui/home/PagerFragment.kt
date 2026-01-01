@@ -187,33 +187,63 @@ class PagerFragment : MainFragment(), PagerAdapter.OnItemClickListener, PagerAda
         (it != getString(R.string.action_unfreeze_remove_home) || frozen)
     }.toMutableList()
 
-    // 2. Add the Store options to the end of the list
-    val playStoreLabel = "Open in Play Store"
-    val fDroidLabel = "Open in F-Droid" // <--- ADD THIS
-    
-    optionsList.add(playStoreLabel)
-    optionsList.add(fDroidLabel)      // <--- ADD THIS
-
-    MaterialAlertDialogBuilder(activity).setTitle(info.name).setItems(
-        optionsList.toTypedArray()
-    ) { _, which ->
-
-        // Check which custom option was clicked by looking at the text
-        val clickedItem = optionsList[which]
-    
-        // 3A. Check if the clicked item is our new Play Store option
-        if (clickedItem == fDroidLabel) {
-            // Droid-ify and F-Droid intercept this URL
-            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://f-droid.org/packages/$pkg")))
-            return@setItems
+    // 1. Detect if the app was installed by Google Play Store
+    val installer = try {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            requireActivity().packageManager.getInstallSourceInfo(pkg).installingPackageName
+        } else {
+            @Suppress("DEPRECATION")
+            requireActivity().packageManager.getInstallerPackageName(pkg)
         }
-        // 3B. Check if the clicked item is our new Play Store option
+    } catch (e: Exception) {
+        null
+    }
+
+    // 2. Conditionally add the suffix
+    val isPlayStore = installer == "com.android.vending"
+    val playStoreLabel = if (isPlayStore) "Open in Play Store (Recommended)" else "Open in Play Store"
+    
+    val fDroidLabel = "Open in F-Droid"
+    
+    // 3. Add to list
+    optionsList.add(playStoreLabel)
+    optionsList.add(fDroidLabel)
+
+    // --APP Title--
+    
+    // 1. Fetch App Version
+    val version = try {
+        // Use 'context' or 'requireActivity()' to get the PackageManager
+        requireActivity().packageManager.getPackageInfo(pkg, 0).versionName
+    } catch (e: Exception) {
+        "" // Fallback if version can't be read
+    }
+
+    // 2. Create the combined Title (Name + Version + Package)
+    // Format: "AppName v1.0.0 (com.example.app)" or with newlines
+    val customTitle = "${info.name} $version\n$pkg"
+
+    MaterialAlertDialogBuilder(activity)
+        .setTitle(customTitle) // <--- Use the new variable here instead of info.name
+        .setItems(optionsList.toTypedArray())
+    { _, which ->
+
+        val clickedItem = optionsList[which]
+
+        // 4. The comparison still works perfectly because we compare against the variable
         if (clickedItem == playStoreLabel) {
-            try {
+             try {
                 startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=$pkg")))
             } catch (e: android.content.ActivityNotFoundException) {
                 startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://play.google.com/store/apps/details?id=$pkg")))
             }
+            return@setItems
+        }
+        
+        // 3A. Check if the clicked item is our new F-Droid option
+        if (clickedItem == fDroidLabel) {
+            // Droid-ify and F-Droid intercept this URL
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://f-droid.org/packages/$pkg")))
             return@setItems
         }
 
